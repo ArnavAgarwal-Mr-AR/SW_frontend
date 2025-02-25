@@ -238,7 +238,7 @@ export const PodcastSession = () => {
     formData.append('userId', userId);
 
     try {
-      const response = await fetch('http://localhost:3001/upload', {
+      const response = await fetch('https://backend-pdis.onrender.com/upload', {
         method: 'POST',
         body: formData,
       });
