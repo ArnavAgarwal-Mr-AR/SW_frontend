@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-export const BACKEND_URL = import.meta.env.BACKEND_URL;
+export const BACKEND_URL = env.BACKEND_URL;
 export default defineConfig({
   plugins: [react()],
   server: {
