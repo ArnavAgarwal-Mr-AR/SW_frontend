@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-export const BACKEND_URL = import.meta.env.BACKEND_URL;
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173, // You can change the port if needed
     proxy: {
       '/api': {
-        target: BACKEND_URL,
+        target: 'https://backend-pdis.onrender.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
