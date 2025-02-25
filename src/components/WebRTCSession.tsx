@@ -25,7 +25,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     const startWebRTC = async () => {
       try {
         // Initialize socket connection
-        socketRef.current = io('http://localhost:3001');
+        socketRef.current = io('https://backend-pdis.onrender.com');
         const socket = socketRef.current;
 
         // Get user media
