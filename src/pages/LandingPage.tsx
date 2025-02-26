@@ -148,51 +148,6 @@ const PodcastLandingPage = () => {
         </div>
       </section>
       
-      {/* Upload Section */}
-      <section className="py-16 bg-gradient-to-b from-white to-blue-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="text-3xl font-bold mb-6" style={{ color: '#0942AC' }}>
-              Get Started with Your Brand
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Upload your podcast studio icon and customize your workspace.
-            </p>
-            
-            <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6 items-center justify-center">
-              <div className="w-full md:w-1/2">
-                <div className="border-2 border-dashed border-blue-300 rounded-lg p-12 text-center bg-white hover:bg-blue-50 transition-colors cursor-pointer">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-800 font-medium">Upload your icon</p>
-                  <p className="text-gray-500 text-sm mt-2">Drag & drop or click to browse</p>
-                </div>
-              </div>
-              
-              <div className="w-full md:w-1/2">
-                <div className="bg-white shadow-lg rounded-lg p-6">
-                  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="webapp-name">
-                    Customize Studio Name
-                  </label>
-                  <input
-                    id="webapp-name"
-                    type="text"
-                    placeholder="Spinning Wheel"
-                    className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button className="mt-4 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
-                    Save Changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
