@@ -16,7 +16,7 @@ export const RegisterForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('https://backend-pdis.onrender.com/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
