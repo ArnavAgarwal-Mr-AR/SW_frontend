@@ -1,2 +1,2 @@
 // src/config.ts
-export const BACKEND_URL = import.meta.env.BACKEND_URL || 'http://localhost:3001';
+export const BACKEND_URL = 'https://backend-pdis.onrender.com' || 'http://localhost:3001';
