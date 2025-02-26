@@ -18,7 +18,7 @@ export const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('${BACKEND_URL}/api/login', {
+      const response = await fetch('https://backend-pdis.onrender.com/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
