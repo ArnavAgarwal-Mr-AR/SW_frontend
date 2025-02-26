@@ -4,7 +4,7 @@ import { Mail, Lock, LogIn, AlertCircle, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { BACKEND_URL } from '../../config';
 
-const LoginForm = () => {
+export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -159,4 +159,3 @@ const LoginForm = () => {
     </div>
   );
 };
-export default LoginForm;
