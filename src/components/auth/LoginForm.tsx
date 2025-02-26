@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, AlertCircle, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { BACKEND_URL } from '../../config';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('${BACKEND_URL}/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
