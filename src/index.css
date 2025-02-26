@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  /* Custom animation for input focus effects */
+  .input-focus-effect {
+    @apply transition-all duration-300;
+  }
+  
+  /* Custom gradient backgrounds */
+  .bg-blue-gradient {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600;
+  }
+  
+  /* Custom shadow effects */
+  .form-card-shadow {
+    @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+}
