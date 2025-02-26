@@ -1,21 +1,19 @@
 import React from 'react';
-import { Sun, Moon } from 'lucide-react';
-import { useThemeStore } from '../../store/themeStore';
+import { HelpCircle } from 'lucide-react';
 
+// This component now serves as a help button instead of a theme toggle
 export const ThemeToggle = () => {
-  const { isDarkMode, toggleTheme } = useThemeStore();
+  const handleHelpClick = () => {
+    alert('Need help? Contact support at support@example.com');
+  };
 
   return (
     <button
-      onClick={toggleTheme}
-      className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-      aria-label="Toggle theme"
+      onClick={handleHelpClick}
+      className="p-2 rounded-lg hover:bg-blue-50 text-blue-600"
+      aria-label="Get help"
     >
-      {isDarkMode ? (
-        <Sun className="h-5 w-5" />
-      ) : (
-        <Moon className="h-5 w-5" />
-      )}
+      <HelpCircle className="h-5 w-5" />
     </button>
   );
 };
