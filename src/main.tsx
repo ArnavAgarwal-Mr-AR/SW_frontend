@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import { LoginForm } from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
+import { RegisterForm } from './components/auth/RegisterForm';
 import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
