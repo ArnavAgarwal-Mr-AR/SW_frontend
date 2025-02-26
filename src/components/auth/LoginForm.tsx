@@ -58,87 +58,102 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md space-y-8">
-      <div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight">
-          Sign in to your account
+    <div className="w-full max-w-md">
+      <div className="bg-white shadow-xl rounded-2xl p-8 mb-6 transition-all duration-300 hover:shadow-2xl">
+        <div className="flex justify-center mb-6">
+          <div className="h-16 w-16 bg-blue-50 rounded-full flex items-center justify-center">
+            <LogIn className="h-8 w-8 text-blue-500" />
+          </div>
+        </div>
+        
+        <h2 className="text-center text-3xl font-bold tracking-tight text-gray-800 mb-8">
+          Welcome Back
         </h2>
+        
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-center gap-3 animate-pulse">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-5">
+            <div className="group relative transition-all duration-300">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                Email
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Mail className="h-5 w-5 text-blue-400 group-hover:text-blue-500 transition-colors" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full rounded-lg border border-gray-200 pl-10 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-all duration-300 hover:bg-gray-100 focus:bg-white"
+                  placeholder="your.email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+            
+            <div className="group relative transition-all duration-300">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 ml-1">
+                Password
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Lock className="h-5 w-5 text-blue-400 group-hover:text-blue-500 transition-colors" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full rounded-lg border border-gray-200 pl-10 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-all duration-300 hover:bg-gray-100 focus:bg-white"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="group relative flex w-full justify-center rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:from-blue-600 hover:to-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-1 active:translate-y-0"
+            >
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <LogIn className="h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
+              </span>
+              {isLoading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </div>
+              ) : 'Sign in'}
+            </button>
+          </div>
+        </form>
       </div>
-      
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-400 p-3 rounded-md flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          <span>{error}</span>
-        </div>
-      )}
 
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="space-y-4 rounded-md shadow-sm">
-          <div>
-            <label htmlFor="email" className="sr-only">
-              Email address
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Mail className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-10 py-2 text-gray-900 dark:text-gray-100"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="password" className="sr-only">
-              Password
-            </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Lock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 pl-10 py-2 text-gray-900 dark:text-gray-100"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-              <LogIn className="h-5 w-5" />
-            </span>
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </div>
-      </form>
-
-      <div className="flex justify-center mt-4">
+      <div className="text-center">
         <button
           onClick={() => navigate('/register')}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="inline-flex items-center space-x-2 px-6 py-3 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors duration-300"
         >
-          <UserPlus className="h-5 w-5" />
-          <span>Create Account</span>
+          <UserPlus className="h-5 w-5 transition-transform group-hover:scale-110" />
+          <span>Create New Account</span>
         </button>
       </div>
     </div>
