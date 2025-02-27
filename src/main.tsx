@@ -1,12 +1,16 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import App from './App';
-import "./index.css";
-ReactDOM.createRoot(document.getElementById('root')!).render(
+import './index.css';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+
+createRoot(rootElement).render(
   <React.StrictMode>
     <Router>
       <Routes>
