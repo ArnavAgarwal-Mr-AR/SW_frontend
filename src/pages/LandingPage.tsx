@@ -30,7 +30,7 @@ const PodcastLandingPage = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full font-medium hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0">
+          <Link to="/login" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full font-medium hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0">
             Login
           </Link>
         </div>
@@ -48,7 +48,7 @@ const PodcastLandingPage = () => {
               Your virtual studio for recording, editing, and publishing professional podcasts. No experience needed.
             </p>
             <div className={`flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 transform ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} transition-all duration-700 delay-200`}>
-              <Link href="/register" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full font-medium hover:shadow-xl transition transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center">
+              <Link to="/register" className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full font-medium hover:shadow-xl transition transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center">
                 <span>Sign Up</span>
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Link>
@@ -156,10 +156,10 @@ const PodcastLandingPage = () => {
               Join thousands of podcasters who are sharing their voice with the world.
             </p>
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Link href="/login" className="px-8 py-4 bg-white text-blue-700 rounded-full font-bold hover:shadow-xl hover:bg-blue-50 transition transform hover:-translate-y-1 active:translate-y-0">
+              <Link to="/login" className="px-8 py-4 bg-white text-blue-700 rounded-full font-bold hover:shadow-xl hover:bg-blue-50 transition transform hover:-translate-y-1 active:translate-y-0">
                 Login
               </Link>
-              <Link href="/register" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition transform hover:-translate-y-1 active:translate-y-0">
+              <Link to="/register" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition transform hover:-translate-y-1 active:translate-y-0">
                 Sign up
               </Link>
             </div>
