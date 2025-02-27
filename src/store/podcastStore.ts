@@ -11,13 +11,15 @@ interface Session {
 }
 
 // Extended Session type for frontend use
-interface ExtendedSession extends Session {
+export interface ExtendedSession extends Session {
   recording?: boolean;
   inviteKey?: string;
   host?: string;
   participants?: string[];
   isAISession?: boolean;
   endTime?: Date;
+  startTime?: Date;
+  duration?: string;
 }
 
 interface Participant {
@@ -37,6 +39,7 @@ interface PodcastState {
   toggleRecording: () => void;
   savePodcast: (session: ExtendedSession) => void;
   deletePodcast: (sessionId: string) => void;
+  fetchSavedPodcasts: () => void;
 }
 
 export const usePodcastStore = create<PodcastState>((set, get) => ({
@@ -121,5 +124,24 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
     set((state) => ({
       savedPodcasts: state.savedPodcasts.filter((podcast) => podcast.id !== sessionId),
     }));
+  },
+
+  fetchSavedPodcasts: async () => {
+    try {
+      const response = await fetch('https://backend-pdis.onrender.com/api/savedPodcasts', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch saved podcasts');
+      }
+
+      const savedPodcasts = await response.json();
+      set({ savedPodcasts });
+    } catch (error) {
+      console.error('Error fetching saved podcasts:', error);
+    }
   },
 }));

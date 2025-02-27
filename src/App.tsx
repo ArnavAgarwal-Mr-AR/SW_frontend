@@ -13,13 +13,6 @@ import { ThemeToggle } from './components/layout/ThemeToggle';
 export default function App() {
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
-  React.useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   return (
     <Router>

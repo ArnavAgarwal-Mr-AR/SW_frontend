@@ -6,6 +6,15 @@
   body {
     @apply bg-gray-50 text-gray-900;
   }
+
+  .dashboard-body {
+    @apply bg-gradient-to-r from-blue-100 to-white text-gray-900;
+  }
+
+  .bg-login-background {
+    @apply bg-cover bg-center;
+    background-image: url('/public/back.jpg'); 
+  }
 }
 
 @layer components {
@@ -22,5 +31,21 @@
   /* Custom shadow effects */
   .form-card-shadow {
     @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .dashboard-header {
+    @apply text-3xl font-bold text-blue-600;
+  }
+  
+  .dashboard-button {
+    @apply p-2 rounded-full hover:bg-blue-100 transition-colors;
+  }
+  
+  .dashboard-section-title {
+    @apply text-2xl font-semibold mb-6 text-blue-600;
+  }
+  
+  .dashboard-no-sessions {
+    @apply text-gray-600;
   }
 }

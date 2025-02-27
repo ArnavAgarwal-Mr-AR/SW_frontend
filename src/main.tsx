@@ -4,6 +4,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
+import { UserDashboard } from './components/dashboard/UserDashboard';
+import { CreatePodcast } from './components/podcast/CreatePodcast';
+import { JoinPodcast } from './components/podcast/JoinPodcast';
+import { PodcastSession } from './components/podcast/PodcastSession';
+import { SettingsPage } from './components/settings/SettingsPage';
 import App from './App';
 import './index.css';
 
@@ -17,7 +22,11 @@ createRoot(rootElement).render(
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-        <Route path="/dashboard/*" element={<App />} />
+        <Route path="/dashboard/*" element={<UserDashboard />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/create-podcast" element={<CreatePodcast />} />
+        <Route path="/join-podcast" element={<JoinPodcast />} />
+        <Route path="/session/:inviteKey" element={<PodcastSession />} />
       </Routes>
     </Router>
   </React.StrictMode>
