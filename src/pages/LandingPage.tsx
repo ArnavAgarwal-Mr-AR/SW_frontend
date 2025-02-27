@@ -171,10 +171,8 @@ const PodcastLandingPage = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-6 md:mb-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shadow-md relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 opacity-80"></div>
-                <Mic className="h-4 w-4 text-white relative z-10" />
-              </div>
+              {/* Replace Mic Icon with Logo */}
+              <img src="./logo_trans.png" alt="Logo" className="w-8 h-8" />
               <span className="text-lg font-bold" style={{ fontFamily: 'Posey Regular, sans-serif', color: '#0942AC' }}>
                 Spinning Wheel
               </span>
