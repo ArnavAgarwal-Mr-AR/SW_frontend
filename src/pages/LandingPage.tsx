@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Mic, Headphones, Users, ChevronRight } from 'lucide-react';
 
 const PodcastLandingPage = () => {
@@ -22,19 +22,13 @@ const PodcastLandingPage = () => {
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           {/* Logo Placeholder - Replace with actual logo */}
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shadow-md relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 opacity-80"></div>
-            <Mic className="h-6 w-6 text-white relative z-10" />
-          </div>
+          <img src='/logo_trans.png' alt="Logo" className="h-10 w-10" />
           <span className="text-xl font-bold" style={{ fontFamily: 'Posey Regular, sans-serif', color: '#0942AC' }}>
             Spinning Wheel
           </span>
         </div>
         
         <div className="flex items-center space-x-4">
-          <a href="#features" className="text-gray-700 hover:text-blue-700 transition-colors">Features</a>
-          <a href="#pricing" className="text-gray-700 hover:text-blue-700 transition-colors">Pricing</a>
-          <a href="#about" className="text-gray-700 hover:text-blue-700 transition-colors">About</a>
           <a href="/login" className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full font-medium hover:shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0">
             Login
           </a>
@@ -139,7 +133,7 @@ const PodcastLandingPage = () => {
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
                 <Headphones className="h-8 w-8 text-blue-700" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-gray-800">Smart Editing</h3>
+              <h3 className="text-xl font-bold mb-4 text-gray-800">AI Guest</h3>
               <p className="text-gray-600">
                 AI-powered editing tools to remove filler words, enhance sound quality, and create professional results.
               </p>
@@ -164,8 +158,8 @@ const PodcastLandingPage = () => {
               <a href="/login" className="px-8 py-4 bg-white text-blue-700 rounded-full font-bold hover:shadow-xl hover:bg-blue-50 transition transform hover:-translate-y-1 active:translate-y-0">
                 Log in
               </a>
-              <a href="/signup" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition transform hover:-translate-y-1 active:translate-y-0">
-                Sign up Free
+              <a href="/register" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition transform hover:-translate-y-1 active:translate-y-0">
+                Sign up
               </a>
             </div>
           </div>
