@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, AlertCircle, UserPlus, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+
 
 export const RegisterForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ export const RegisterForm = () => {
   };
 
   return (
+<div className="min-h-screen flex items-center justify-center bg-login-background">
     <div className="w-full max-w-md">
       <div className="bg-white shadow-xl rounded-2xl p-8 mb-6 transition-all duration-300 hover:shadow-2xl">
         <div className="flex justify-center mb-6">
@@ -128,7 +131,7 @@ export const RegisterForm = () => {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   className="focus:ring-2 focus:ring-blue-500 focus:border-transparent block w-full rounded-lg border border-gray-200 pl-10 py-3 text-gray-800 bg-gray-50 placeholder-gray-400 transition-all duration-300 hover:bg-gray-100 focus:bg-white"
                   placeholder="••••••••"
@@ -136,6 +139,9 @@ export const RegisterForm = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                 />
+<div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff className="h-5 w-5 text-blue-400 group-hover:text-blue-500 transition-colors" /> : <Eye className="h-5 w-5 text-blue-400 group-hover:text-blue-500 transition-colors" />}
+                  </div>
               </div>
             </div>
           </div>
@@ -169,8 +175,9 @@ export const RegisterForm = () => {
           className="inline-flex items-center space-x-2 px-6 py-3 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors duration-300"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span>Back to Sign In</span>
+          <span>Back to Home Page</span>
         </button>
+</div>
       </div>
     </div>
   );

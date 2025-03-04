@@ -254,6 +254,27 @@ export const PodcastSession = () => {
     }
   }
 
+  async function endSession() {
+    try {
+      const response = await fetch('https://backend-pdis.onrender.com/api/sessions/end', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({ roomId: inviteKey })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to end session');
+      }
+
+      console.log('Session ended successfully');
+    } catch (error) {
+      console.error('Error ending session:', error);
+    }
+  }
+
   function handleEndSession() {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
@@ -263,6 +284,7 @@ export const PodcastSession = () => {
       }
     }
     stopLocalTracks();
+    endSession();
     navigate('/dashboard');
   }
 
@@ -275,7 +297,7 @@ export const PodcastSession = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000); 
     }).catch(err => {
       console.error('Failed to copy: ', err);
     });
@@ -286,7 +308,7 @@ export const PodcastSession = () => {
     const message = `
 🎙️ Podcast Invitation!
 
-Hey! ${user.name} would love to have you as a guest on their podcast session "${currentSession?.title || 'Podcast Session'}"!
+Hey! ${user.name} would love to have you as a guest on their podcast."}"!
 
 📝 Session Details:
 • Host: ${user.name}
@@ -308,7 +330,7 @@ Looking forward to having you on the show! 🎧
           window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`, '_blank');
           break;
         case 'sms':
-          window.open(`sms:?&body=${encodeURIComponent(message)}`, '_blank');
+          window.open(`sm.opens:sm.opensody=${encodeURIComponent(message)}`, '_blank');
           break;
         default:
           console.error('Unsupported sharing platform');

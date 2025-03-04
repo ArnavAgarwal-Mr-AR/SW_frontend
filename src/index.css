@@ -13,7 +13,7 @@
 
   .bg-login-background {
     @apply bg-cover bg-center;
-    background-image: url('/public/back.jpg'); 
+    background-image: url('/back.jpg'); 
   }
 }
 
