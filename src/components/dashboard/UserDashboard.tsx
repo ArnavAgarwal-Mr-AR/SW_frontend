@@ -11,6 +11,7 @@ export const UserDashboard = () => {
   const user = useAuthStore((state) => state.user);
   const fetchSavedPodcasts = usePodcastStore((state) => state.fetchSavedPodcasts);
   const savedPodcasts = usePodcastStore((state) => state.savedPodcasts);
+  const setToken = useAuthStore((state) => state.setToken);
 
   useEffect(() => {
     if (user) {
@@ -20,6 +21,12 @@ export const UserDashboard = () => {
   }, [user, fetchSavedPodcasts]);
 
   console.log('Saved podcasts:', savedPodcasts);
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    setToken(null);
+    navigate('/');
+  };
 
   if (!user) return null;
 
@@ -56,6 +63,8 @@ export const UserDashboard = () => {
             <p className="dashboard-no-sessions">No past sessions found.</p>
           )}
         </section>
+
+        <button onClick={handleLogout}>Logout</button>
       </div>
     </div>
   );

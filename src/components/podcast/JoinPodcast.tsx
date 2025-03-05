@@ -10,7 +10,6 @@ export const JoinPodcast = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
-  const joinSession = usePodcastStore((state) => state.joinSession);
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +21,13 @@ export const JoinPodcast = () => {
     try {
       const response = await axios.post('/join-session', { inviteKey });
       console.log('Response:', response.data);
-      setMessage(response.data);
+
+      if (response.data.success) {
+        // Navigate to the session page
+        navigate(`/session/${response.data.sessionId}`);
+      } else {
+        setMessage('Invalid invite key or session not available.');
+      }
     } catch (error) {
       console.error('Error:', error);
       if (error.response) {
