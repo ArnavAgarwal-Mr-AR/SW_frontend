@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePodcastStore } from '../../store/podcastStore';
+import axios from 'axios';
 
 export const JoinPodcast = () => {
   const [inviteKey, setInviteKey] = useState('');
@@ -10,32 +11,21 @@ export const JoinPodcast = () => {
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
   const joinSession = usePodcastStore((state) => state.joinSession);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      const response = await fetch(`/api/sessions/${inviteKey}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid session key');
-      }
-
-      const session = await response.json();
-      
-      if (joinSession(session)) {
-        navigate(`/session/${inviteKey}`);
-      } else {
-        setError('Failed to join session');
-      }
+      const response = await axios.post('/join-session', { inviteKey });
+      setMessage(response.data);
     } catch (error) {
-      console.error('Join session error:', error);
-      setError('Invalid invite key');
+      if (error.response) {
+        setMessage(error.response.data);
+      } else {
+        setMessage('An error occurred while joining the session.');
+      }
     }
   };
 
@@ -71,6 +61,7 @@ export const JoinPodcast = () => {
             Join Session
           </button>
         </form>
+        {message && <p className="mt-4 text-sm text-gray-500">{message}</p>}
       </div>
     </div>
   );
