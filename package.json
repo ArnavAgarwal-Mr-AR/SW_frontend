@@ -16,6 +16,7 @@
     "@tensorflow/tfjs-converter": "^4.17.0",
     "@tensorflow/tfjs-core": "^4.17.0",
     "@types/socket.io-client": "^3.0.0",
+    "axios": "^1.8.1",
     "clsx": "^2.1.0",
     "lucide-react": "^0.344.0",
     "nanoid": "^5.0.6",
