@@ -16,11 +16,15 @@ export const JoinPodcast = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    console.log('Join session button clicked');
+    console.log('Invite Key:', inviteKey);
 
     try {
       const response = await axios.post('/join-session', { inviteKey });
+      console.log('Response:', response.data);
       setMessage(response.data);
     } catch (error) {
+      console.error('Error:', error);
       if (error.response) {
         setMessage(error.response.data);
       } else {
