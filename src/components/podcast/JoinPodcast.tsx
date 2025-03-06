@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePodcastStore } from '../../store/podcastStore';
 import axios from 'axios';
-
 
 export const JoinPodcast = () => {
   const navigate = useNavigate();
@@ -12,36 +11,11 @@ export const JoinPodcast = () => {
   const inviteKey = searchParams.get('key'); // Get invite key from URL
   const user = useAuthStore((state) => state.user);
   const joinSession = usePodcastStore((state) => state.joinSession);
-  const [setInviteKey] = useState('');
+  const [inputKey, setInputKey] = useState(inviteKey || ''); // Store invite key separately
   const [error, setError] = useState('');
-  const token = useAuthStore((state) => state.token);
   const [message, setMessage] = useState('');
+  const token = useAuthStore((state) => state.token);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    console.log('Join session button clicked');
-    console.log('Invite Key:', inviteKey);
-
-    try {
-      const response = await axios.post('/join-session', { inviteKey });
-      console.log('Response:', response.data);
-
-      if (response.data.success) {
-        // Navigate to the session page
-        navigate(`/session/${response.data.sessionId}`);
-      } else {
-        setMessage('Invalid invite key or session not available.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      if (error.response) {
-        setMessage(error.response.data);
-      } else {
-        setMessage('An error occurred while joining the session.');
-      }
-    }
-  };
   useEffect(() => {
     if (!inviteKey) {
       navigate('/dashboard'); // Redirect if no invite key
@@ -56,14 +30,51 @@ export const JoinPodcast = () => {
       // If user is logged in, join session immediately
       joinSession(inviteKey)
         .then((success) => {
-          if (success) navigate(`/session/${inviteKey}`);
-          else navigate('/dashboard'); // Redirect if session invalid
+          if (success) {
+            navigate(`/session/${inviteKey}`);
+          } else {
+            setError('Invalid invite key or session not available.');
+            navigate('/dashboard'); // Redirect if session invalid
+          }
         })
-        .catch(() => navigate('/dashboard'));
+        .catch(() => {
+          setError('An error occurred while joining the session.');
+          navigate('/dashboard');
+        });
     }
   }, [inviteKey, user, joinSession, navigate]);
 
-  return <div>Joining session...</div>;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    console.log('Join session button clicked');
+    console.log('Invite Key:', inputKey);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/join-session`, // Use full API URL
+        { inviteKey: inputKey },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('Response:', response.data);
+
+      if (response.data.success) {
+        navigate(`/session/${response.data.sessionId}`);
+      } else {
+        setMessage('Invalid invite key or session not available.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        setMessage(error.response.data.message || 'An error occurred while joining the session.');
+      } else {
+        setMessage('An error occurred while joining the session.');
+      }
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto pt-16">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
@@ -80,8 +91,8 @@ export const JoinPodcast = () => {
               <input
                 id="inviteKey"
                 type="text"
-                value={inviteKey}
-                onChange={(e) => setInviteKey(e.target.value)}
+                value={inputKey}
+                onChange={(e) => setInputKey(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border rounded-md"
                 placeholder="Enter 13-character key"
                 required
