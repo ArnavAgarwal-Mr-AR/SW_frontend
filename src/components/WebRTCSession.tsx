@@ -21,6 +21,45 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
 
+  const startRecording = () => {
+    if (socketRef.current) {
+      socketRef.current.emit('start-recording', { roomId });
+    }
+  };
+  
+  const stopRecording = () => {
+    if (socketRef.current) {
+      socketRef.current.emit('stop-recording', { roomId });
+    }
+  };
+  
+  useEffect(() => {
+    if (!socketRef.current) return;
+  
+    socketRef.current.on('recording-started', () => {
+      console.log('Recording started');
+    });
+  
+    socketRef.current.on('recording-stopped', async () => {
+      console.log('Recording stopped. Processing...');
+      
+      const response = await fetch('/api/process-recording', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: roomId }),
+      });
+  
+      const data = await response.json();
+      console.log('Final video available at:', data.finalRecording);
+    });
+  
+    return () => {
+      socketRef.current?.off('recording-started');
+      socketRef.current?.off('recording-stopped');
+    };
+  }, []);
+  
+
   useEffect(() => {
     const startWebRTC = async () => {
       try {
@@ -64,6 +103,23 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
           }
           setParticipants(prev => prev.filter(p => p.id !== userId));
         });
+      
+        useEffect(() => {
+          if (!socketRef.current) return;
+        
+          socketRef.current.on('active-speaker', ({ userId }) => {
+            setParticipants(prev =>
+              prev.map(p => ({
+                ...p,
+                isActiveSpeaker: p.id === userId,
+              }))
+            );
+          });
+        
+          return () => {
+            socketRef.current?.off('active-speaker');
+          };
+        }, []);       
 
       } catch (error) {
         console.error('Error starting WebRTC:', error);
@@ -76,6 +132,35 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
       cleanup();
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (!localStreamRef.current || !socketRef.current) return;
+  
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const microphone = audioContext.createMediaStreamSource(localStreamRef.current);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+  
+    analyser.fftSize = 512;
+    microphone.connect(analyser);
+  
+    const sendAudioLevel = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+  
+      if (socketRef.current) {
+        socketRef.current.emit('audio-level', { roomId, userId: 'local', level: volume });
+      }
+      requestAnimationFrame(sendAudioLevel);
+    };
+  
+    sendAudioLevel();
+  
+    return () => {
+      audioContext.close();
+    };
+  }, []);
+  
 
   const createPeerConnection = (userId: string, stream: MediaStream) => {
     const peerConnection = new RTCPeerConnection({
@@ -177,6 +262,18 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
       </div>
 
       <div className="controls">
+        <button 
+          className="control-button" 
+          onClick={startRecording}
+          >
+          Start Recording
+        </button>
+        <button 
+          className="control-button" 
+          onClick={stopRecording}
+          >
+          Stop Recording
+        </button>
         <button 
           className={`control-button ${isAudioMuted ? 'active' : ''}`}
           onClick={toggleAudio}
