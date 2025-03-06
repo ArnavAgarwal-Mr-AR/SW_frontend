@@ -53,7 +53,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 
   createSession: async (title: string) => {
     try {
-      const response = await fetch('/api/sessions', {
+      const response = await fetch('https://backend-pdis.onrender.com/api/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,24 +61,42 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
         },
         body: JSON.stringify({ title }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to create session');
       }
-
+  
       const session = await response.json();
+      if (!session.inviteKey) {
+        throw new Error('Invite key not generated');
+      }
+  
       set({ currentSession: session });
-      return true;
+      return session.inviteKey; // Return invite key for frontend use
     } catch (error) {
       console.error('Error creating session:', error);
-      return false;
+      return null;
     }
   },
 
-  joinSession: (session: Session) => {
+  joinSession: async (inviteKey: string) => {
     try {
-      io.emit('join-room', session.room_id);
-      set({ currentSession: session });
+      const response = await fetch('https://backend-pdis.onrender.com/join-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: JSON.stringify({ inviteKey }),
+      });
+  
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error('Invalid invite key');
+      }
+  
+      io.emit('join-room', data.sessionId);
+      set({ currentSession: data.sessionId });
       return true;
     } catch (error) {
       console.error('Error joining session:', error);
