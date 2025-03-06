@@ -108,15 +108,24 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 
   toggleRecording: () => {
     const session = get().currentSession;
-    if (session) {
+    const socket = get().socket;
+  
+    if (session && socket) {
+      if (session.recording) {
+        socket.emit('stop-recording', { roomId: session.room_id });
+      } else {
+        socket.emit('start-recording', { roomId: session.room_id });
+      }
+  
       set({
         currentSession: {
           ...session,
-          recording: !session.recording
-        }
+          recording: !session.recording,
+        },
       });
     }
   },
+  
 
   savePodcast: (session: ExtendedSession) => {
     set((state) => ({

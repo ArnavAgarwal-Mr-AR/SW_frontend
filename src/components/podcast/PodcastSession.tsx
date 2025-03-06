@@ -6,9 +6,15 @@ import { usePodcastStore } from '../../store/podcastStore';
 import { useAuthStore } from '../../store/authStore';
 import { socket } from '../../utils/socket';
 
+interface Participant {
+  id: string;
+  isActiveSpeaker: boolean;
+  // Add other properties as needed
+}
+
 export const PodcastSession = () => {
   const { inviteKey } = useParams();
-  const [participants, setParticipants] = useState<string[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
   const currentSession = usePodcastStore((state) => state.currentSession);
   const user = useAuthStore((state) => state.user);
@@ -31,10 +37,16 @@ export const PodcastSession = () => {
 
   const getVideoContainerClass = () => {
     const count = participants.length + 1; // +1 for local user
+  
+    if (currentSession?.recording) {
+      return 'video-container-single'; // Show only the active speaker
+    }
+  
     if (count === 1) return 'video-container-full';
     if (count === 2) return 'video-container-split';
     return 'video-container-grid';
   };
+  
 
   useEffect(() => {
     socket.emit('join-room', inviteKey);
@@ -47,11 +59,11 @@ export const PodcastSession = () => {
       await peerConnection.setLocalDescription(offer);
       socket.emit('offer', { offer, roomId: inviteKey, targetId: newUserId });
 
-      setParticipants((prev) => [...prev, newUserId]);
+      setParticipants((prev) => [...prev, { id: newUserId, isActiveSpeaker: false }]);
     });
 
     socket.on('existing-participants', (existingIds: string[]) => {
-      setParticipants(existingIds);
+      setParticipants(existingIds.map(id => ({ id, isActiveSpeaker: false })));
     });
 
     socket.on('user-disconnected', (disconnectedId: string) => {
@@ -59,7 +71,7 @@ export const PodcastSession = () => {
         peerConnectionsRef.current.get(disconnectedId)?.close();
         peerConnectionsRef.current.delete(disconnectedId);
       }
-      setParticipants((prev) => prev.filter(id => id !== disconnectedId));
+      setParticipants((prev) => prev.filter(p => p.id !== disconnectedId));
     });
 
     socket.on('offer', async ({ offer, senderId }) => {
@@ -86,6 +98,15 @@ export const PodcastSession = () => {
       }
     });
 
+    socket.on('active-speaker', ({ userId }) => {
+      setParticipants(prev =>
+        prev.map(p => ({
+          ...p,
+          isActiveSpeaker: p.id === userId,
+        }))
+      );
+    });
+
     socket.on('participant-count', (count: number) => {
       setParticipantCount(count);
     });
@@ -98,6 +119,7 @@ export const PodcastSession = () => {
       socket.off('answer');
       socket.off('ice-candidate');
       socket.off('participant-count');
+      socket.off('active-speaker');
       stopLocalTracks();
     };
   }, [inviteKey]);
@@ -227,32 +249,35 @@ export const PodcastSession = () => {
     const formData = new FormData();
     const sessionId = currentSession?.id || '';
     const userId = user?.id;
-
+    const activeSpeakerId = participants.find(p => p.isActiveSpeaker)?.id || userId;
+  
     if (!sessionId || !userId) {
       console.error('Invalid sessionId or userId:', { sessionId, userId });
       return;
     }
-
+  
     formData.append('video', blob, 'recording.webm');
     formData.append('sessionId', sessionId);
     formData.append('userId', userId);
-
+    formData.append('activeSpeakerId', activeSpeakerId || '');
+  
     try {
       const response = await fetch('https://backend-pdis.onrender.com/upload', {
         method: 'POST',
         body: formData,
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to upload recording');
       }
-
+  
       const data = await response.json();
-      console.log('Recording uploaded:', data);
+      console.log('Speaker-focused recording uploaded:', data);
     } catch (error) {
       console.error('Error uploading recording:', error);
     }
   }
+  
 
   async function endSession() {
     try {
@@ -353,10 +378,10 @@ Looking forward to having you on the show! 🎧
           />
         </div>
         
-        {participants.map((participantId) => (
-          <div key={participantId} className="video-wrapper">
+        {participants.map((participant) => (
+          <div key={participant.id} className="video-wrapper">
             <video
-              id={`video-${participantId}`}
+              id={`video-${participant.id}`}
               className="video-stream"
               autoPlay
               playsInline
