@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { socket } from '../utils/socket';
+import { io, Socket } from 'socket.io-client';
 
 // Define the base Session type from the database
 interface Session {
@@ -32,6 +32,7 @@ interface PodcastState {
   currentSession: ExtendedSession | null;
   savedPodcasts: ExtendedSession[];
   participants: Participant[];
+  socket: Socket | null;
   createSession: (title: string) => Promise<boolean>;
   joinSession: (session: Session) => boolean;
   leaveSession: () => void;
@@ -40,12 +41,15 @@ interface PodcastState {
   savePodcast: (session: ExtendedSession) => void;
   deletePodcast: (sessionId: string) => void;
   fetchSavedPodcasts: () => void;
+  setSession: (session: ExtendedSession) => void;
+  setSocket: (socket: Socket) => void;
 }
 
 export const usePodcastStore = create<PodcastState>((set, get) => ({
   currentSession: null,
   savedPodcasts: [],
   participants: [],
+  socket: null,
 
   createSession: async (title: string) => {
     try {
@@ -73,7 +77,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 
   joinSession: (session: Session) => {
     try {
-      socket.emit('join-room', session.room_id);
+      io.emit('join-room', session.room_id);
       set({ currentSession: session });
       return true;
     } catch (error) {
@@ -83,8 +87,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
   },
 
   leaveSession: () => {
-    if (socket) {
-      socket.emit('leave-room');
+    if (io) {
+      io.emit('leave-room');
     }
     set({ currentSession: null, participants: [] });
   },
@@ -144,4 +148,11 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
       console.error('Error fetching saved podcasts:', error);
     }
   },
+
+  setSession: (session: ExtendedSession) => set({ currentSession: session }),
+  setSocket: (socket: Socket) => set({ socket }),
 }));
+
+// Initialize socket connection somewhere in your app
+const socket = io('https://your-socket-server.com');
+usePodcastStore.getState().setSocket(socket);

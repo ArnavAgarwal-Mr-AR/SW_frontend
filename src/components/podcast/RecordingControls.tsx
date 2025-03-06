@@ -4,7 +4,17 @@ import { usePodcastStore } from '../../store/podcastStore';
 
 export const RecordingControls = () => {
   const session = usePodcastStore((state) => state.currentSession);
-  const toggleRecording = usePodcastStore((state) => state.toggleRecording);
+  const socket = usePodcastStore((state) => state.socket);
+
+const toggleRecording = () => {
+  if (!session) return;
+  if (session.recording) {
+    socket?.emit('stop-recording', { roomId: session.id });
+  } else {
+    socket?.emit('start-recording', { roomId: session.id });
+  }
+};
+
 
   if (!session) return null;
 
