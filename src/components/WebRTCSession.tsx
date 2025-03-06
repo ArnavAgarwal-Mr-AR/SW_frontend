@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import './WebRTCSession.css';
 import { io, Socket } from 'socket.io-client';
 import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react';
+import { VideoProcessor } from './podcast/VideoProcessor';
 
 interface WebRTCSessionProps {
   roomId?: string;
@@ -20,6 +21,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
   const socketRef = useRef<Socket | null>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const localStreamRef = useRef<MediaStream | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const startRecording = () => {
     if (socketRef.current) {
@@ -33,6 +35,13 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     }
   };
   
+  const handleFaceDetection = (status: string) => {
+    if (socketRef.current) {
+      socketRef.current.emit('face-detection', { roomId, userId: 'local', status });
+    }
+  };
+  
+
   useEffect(() => {
     if (!socketRef.current) return;
   
@@ -237,26 +246,29 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
       <div className="studio-background" />
       <div className="studio-overlay">
         <div className="studio-circle">
-          {participants.map((participant, index) => (
-            <div key={participant.id} className="participant-seat">
-              <div className="seat-container">
-                <div className="chair" />
+        {participants.map((participant, index) => (
+          <div key={participant.id} className="participant-seat">
+            <div className="seat-container">
+              <div className="chair" />
                 <div className="video-container">
                   <video
                     className="video-stream"
                     ref={el => {
-                      if (el) {
-                        el.srcObject = participant.stream;
-                      }
-                    }}
-                    autoPlay
-                    playsInline
-                    muted={participant.id === 'local'}
-                  />
-                </div>
-                <div className="participant-name">{participant.name}</div>
+                    if (el && participant.id === 'local') {
+                      el.srcObject = participant.stream;
+                    }
+                  }}
+                autoPlay
+                playsInline
+                muted={participant.id === 'local'}
+                />
+                {participant.id === 'local' && (
+                <VideoProcessor videoRef={localVideoRef} onProcessedFace={handleFaceDetection} />
+                )}
               </div>
-            </div>
+            <div className="participant-name">{participant.name}</div>
+          </div>
+          </div>
           ))}
         </div>
       </div>
