@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { KeyRound } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { usePodcastStore } from '../../store/podcastStore';
 import axios from 'axios';
 
+
 export const JoinPodcast = () => {
-  const [inviteKey, setInviteKey] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteKey = searchParams.get('key'); // Get invite key from URL
+  const user = useAuthStore((state) => state.user);
+  const joinSession = usePodcastStore((state) => state.joinSession);
+  const [setInviteKey] = useState('');
+  const [error, setError] = useState('');
   const token = useAuthStore((state) => state.token);
   const [message, setMessage] = useState('');
 
@@ -37,7 +42,28 @@ export const JoinPodcast = () => {
       }
     }
   };
+  useEffect(() => {
+    if (!inviteKey) {
+      navigate('/dashboard'); // Redirect if no invite key
+      return;
+    }
 
+    if (!user) {
+      // Store invite key temporarily & redirect to login
+      localStorage.setItem('pending_invite_key', inviteKey);
+      navigate('/login'); // Redirect to login page
+    } else {
+      // If user is logged in, join session immediately
+      joinSession(inviteKey)
+        .then((success) => {
+          if (success) navigate(`/session/${inviteKey}`);
+          else navigate('/dashboard'); // Redirect if session invalid
+        })
+        .catch(() => navigate('/dashboard'));
+    }
+  }, [inviteKey, user, joinSession, navigate]);
+
+  return <div>Joining session...</div>;
   return (
     <div className="max-w-md mx-auto pt-16">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">

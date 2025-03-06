@@ -80,6 +80,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
   },
 
   joinSession: async (inviteKey: string) => {
+    console.log(`Joining session with inviteKey: ${inviteKey}`);
+  
     try {
       const response = await fetch('https://backend-pdis.onrender.com/join-session', {
         method: 'POST',
@@ -102,7 +104,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
       console.error('Error joining session:', error);
       return false;
     }
-  },
+  },  
 
   leaveSession: () => {
     if (io) {

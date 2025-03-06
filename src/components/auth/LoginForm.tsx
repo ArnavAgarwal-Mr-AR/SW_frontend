@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, AlertCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { BACKEND_URL } from '../../config';
+
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +12,19 @@ export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+
+  const handleLogin = async (email: string, password: string) => {
+    const success = await login(email, password);
+    if (success) {
+      const inviteKey = localStorage.getItem('pending_invite_key');
+      localStorage.removeItem('pending_invite_key'); // Clear it after use
+      if (inviteKey) {
+        navigate(`/join-podcast?key=${inviteKey}`);
+      } else {
+        navigate('/dashboard'); // Normal login redirection
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

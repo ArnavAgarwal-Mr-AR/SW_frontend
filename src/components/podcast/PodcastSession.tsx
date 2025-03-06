@@ -265,6 +265,9 @@ export const PodcastSession = () => {
       const response = await fetch('https://backend-pdis.onrender.com/upload', {
         method: 'POST',
         body: formData,
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
       });
   
       if (!response.ok) {
