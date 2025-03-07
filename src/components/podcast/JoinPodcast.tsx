@@ -8,52 +8,50 @@ import axios from 'axios';
 export const JoinPodcast = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const inviteKey = searchParams.get('key'); // Get invite key from URL
+  const initialKey = searchParams.get('key') || ''; // Get invite key from URL (if present)
   const user = useAuthStore((state) => state.user);
   const joinSession = usePodcastStore((state) => state.joinSession);
-  const [inputKey, setInputKey] = useState(inviteKey || ''); // Store invite key separately
+  const [inputKey, setInputKey] = useState(initialKey); // Controlled input field
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const token = useAuthStore((state) => state.token);
 
   useEffect(() => {
-    if (!inviteKey) {
-      navigate('/dashboard'); // Redirect if no invite key
-      return;
-    }
+    const autoJoinSession = async () => {
+      if (!initialKey) return; // Don't trigger if no key in URL
 
-    if (!user) {
-      // Store invite key temporarily & redirect to login
-      localStorage.setItem('pending_invite_key', inviteKey);
-      navigate('/login'); // Redirect to login page
-    } else {
-      // If user is logged in, join session immediately
-      joinSession(inviteKey)
-        .then((success) => {
-          if (success) {
-            navigate(`/session/${inviteKey}`);
-          } else {
-            setError('Invalid invite key or session not available.');
-            navigate('/dashboard'); // Redirect if session invalid
-          }
-        })
-        .catch(() => {
-          setError('An error occurred while joining the session.');
-          navigate('/dashboard');
-        });
-    }
-  }, [inviteKey, user, joinSession, navigate]);
+      if (!user) {
+        localStorage.setItem('pending_invite_key', initialKey);
+        navigate('/login'); // Redirect to login if not authenticated
+        return;
+      }
+
+      try {
+        const success = await joinSession(initialKey);
+        if (success) {
+          navigate(`/session/${initialKey}`);
+        } else {
+          setError('Invalid invite key or session not available.');
+        }
+      } catch (err) {
+        setError('An error occurred while joining the session.');
+      }
+    };
+
+    autoJoinSession(); // Call the function
+  }, [initialKey, user, joinSession, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
+
     console.log('Join session button clicked');
     console.log('Invite Key:', inputKey);
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/join-session`, // Use full API URL
+        `${import.meta.env.VITE_BACKEND_URL}/join-session`,
         { inviteKey: inputKey },
         { headers: { Authorization: `Bearer ${token}` } }
       );
