@@ -73,7 +73,17 @@ export const PodcastSession = () => {
       }
       setParticipants((prev) => prev.filter(p => p.id !== disconnectedId));
     });
-
+    
+    socket.on("user-disconnected", (userId) => {
+      console.log(`User ${userId} disconnected`);
+      delete peerConnections[userId]; // Remove from peer connections
+  
+      const videoElement = document.getElementById(`video-${userId}`);
+      if (videoElement) {
+          videoElement.remove();
+      }
+  });
+  
     socket.on('offer', async ({ offer, senderId }) => {
       const peerConnection = createPeerConnection(senderId);
       peerConnectionsRef.current.set(senderId, peerConnection);

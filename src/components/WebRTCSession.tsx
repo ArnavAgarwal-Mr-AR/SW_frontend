@@ -23,222 +23,153 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
   const localStreamRef = useRef<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const startRecording = () => {
-    if (socketRef.current) {
-      socketRef.current.emit('start-recording', { roomId });
-    }
-  };
-  
-  const stopRecording = () => {
-    if (socketRef.current) {
-      socketRef.current.emit('stop-recording', { roomId });
-    }
-  };
-  
-  const handleFaceDetection = (status: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('face-detection', { roomId, userId: 'local', status });
-    }
-  };
-  
-
   useEffect(() => {
-    if (!socketRef.current) return;
-  
-    socketRef.current.on('recording-started', () => {
-      console.log('Recording started');
-    });
-  
-    socketRef.current.on('recording-stopped', async () => {
-      console.log('Recording stopped. Processing...');
-      
-      const response = await fetch('/api/process-recording', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: roomId }),
-      });
-  
-      const data = await response.json();
-      console.log('Final video available at:', data.finalRecording);
-    });
-  
-    return () => {
-      socketRef.current?.off('recording-started');
-      socketRef.current?.off('recording-stopped');
-    };
-  }, []);
-  
-
-  useEffect(() => {
-    const startWebRTC = async () => {
+    const initializeWebRTC = async () => {
       try {
-        // Initialize socket connection
+        // Connect to the backend WebSocket
         socketRef.current = io('https://backend-pdis.onrender.com');
         const socket = socketRef.current;
 
-        // Get user media
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: true, 
-          video: true 
-        });
+        // Get user media (audio + video)
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         localStreamRef.current = stream;
-        
-        // Add local participant
-        setParticipants([{
-          id: 'local',
-          stream,
-          name: 'You'
-        }]);
 
-        // Join room
+        // Set local participant
+        setParticipants([{ id: 'local', stream, name: 'You' }]);
+
+        // Display video on local screen
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        // Emit event to join the WebRTC session
         socket.emit('join-room', roomId);
 
-        // Handle new participant joining
+        // Handle when a new user joins
         socket.on('user-connected', async (userId: string) => {
+          console.log(`User connected: ${userId}`);
           const peerConnection = createPeerConnection(userId, stream);
           peerConnectionsRef.current.set(userId, peerConnection);
-          
+
           // Create and send offer
           const offer = await peerConnection.createOffer();
           await peerConnection.setLocalDescription(offer);
           socket.emit('offer', { offer, roomId, targetId: userId });
         });
 
-        // Handle participant leaving
+        // Handle when a user leaves
         socket.on('user-disconnected', (userId: string) => {
+          console.log(`User disconnected: ${userId}`);
           if (peerConnectionsRef.current.has(userId)) {
             peerConnectionsRef.current.get(userId)?.close();
             peerConnectionsRef.current.delete(userId);
           }
           setParticipants(prev => prev.filter(p => p.id !== userId));
         });
-      
-        useEffect(() => {
-          if (!socketRef.current) return;
-        
-          socketRef.current.on('active-speaker', ({ userId }) => {
-            setParticipants(prev =>
-              prev.map(p => ({
-                ...p,
-                isActiveSpeaker: p.id === userId,
-              }))
-            );
-          });
-        
-          return () => {
-            socketRef.current?.off('active-speaker');
-          };
-        }, []);       
+
+        // Handle incoming offers
+        socket.on('offer', async ({ offer, senderId }: { offer: RTCSessionDescriptionInit; senderId: string }) => {
+          console.log(`Received offer from: ${senderId}`);
+          const peerConnection = createPeerConnection(senderId, stream);
+          peerConnectionsRef.current.set(senderId, peerConnection);
+
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(answer);
+
+          socket.emit('answer', { answer, roomId, targetId: senderId });
+        });
+
+        // Handle answers
+        socket.on('answer', ({ answer, senderId }: { answer: RTCSessionDescriptionInit; senderId: string }) => {
+          console.log(`Received answer from: ${senderId}`);
+          const peerConnection = peerConnectionsRef.current.get(senderId);
+          if (peerConnection) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+          }
+        });
+
+        // Handle ICE candidates
+        socket.on('ice-candidate', ({ candidate, senderId }: { candidate: RTCIceCandidateInit; senderId: string }) => {
+          console.log(`Received ICE candidate from: ${senderId}`);
+          const peerConnection = peerConnectionsRef.current.get(senderId);
+          if (peerConnection) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+        });
 
       } catch (error) {
-        console.error('Error starting WebRTC:', error);
+        console.error('Error initializing WebRTC:', error);
       }
     };
 
-    startWebRTC();
-
-    return () => {
-      cleanup();
-    };
+    initializeWebRTC();
+    return cleanup;
   }, [roomId]);
 
+  // Active Speaker Detection
+  useEffect(() => {
+    if (!socketRef.current) return;
+    socketRef.current.on('active-speaker', ({ userId }) => {
+      setParticipants(prev =>
+        prev.map(p => ({
+          ...p,
+          isActiveSpeaker: p.id === userId,
+        }))
+      );
+    });
+
+    return () => {
+      socketRef.current?.off('active-speaker');
+    };
+  }, []);
+
+  // Audio Level Detection
   useEffect(() => {
     if (!localStreamRef.current || !socketRef.current) return;
-  
     const audioContext = new AudioContext();
     const analyser = audioContext.createAnalyser();
     const microphone = audioContext.createMediaStreamSource(localStreamRef.current);
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-  
+
     analyser.fftSize = 512;
     microphone.connect(analyser);
-  
+
     const sendAudioLevel = () => {
       analyser.getByteFrequencyData(dataArray);
       const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-  
-      if (socketRef.current) {
-        socketRef.current.emit('audio-level', { roomId, userId: 'local', level: volume });
-      }
+
+      socketRef.current?.emit('audio-level', { roomId, userId: 'local', level: volume });
       requestAnimationFrame(sendAudioLevel);
     };
-  
+
     sendAudioLevel();
-  
-    return () => {
-      audioContext.close();
-    };
+    return () => audioContext.close();
   }, []);
-  
 
   const createPeerConnection = (userId: string, stream: MediaStream) => {
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    });
+    const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 
-    // Add local tracks
-    stream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, stream);
-    });
+    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
 
-    // Handle ICE candidates
     peerConnection.onicecandidate = (event) => {
-      if (event.candidate && socketRef.current) {
-        socketRef.current.emit('ice-candidate', {
-          candidate: event.candidate,
-          roomId,
-          targetId: userId
-        });
+      if (event.candidate) {
+        socketRef.current?.emit('ice-candidate', { candidate: event.candidate, roomId, targetId: userId });
       }
     };
 
-    // Handle remote stream
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
-      setParticipants(prev => {
-        if (prev.some(p => p.id === userId)) return prev;
-        return [...prev, {
-          id: userId,
-          stream: remoteStream,
-          name: `Participant ${prev.length}`
-        }];
-      });
+      setParticipants(prev => (prev.some(p => p.id === userId) ? prev : [...prev, { id: userId, stream: remoteStream, name: `Participant ${prev.length}` }]));
     };
 
     return peerConnection;
   };
 
   const cleanup = () => {
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-    }
-    peerConnectionsRef.current.forEach(connection => {
-      connection.close();
-    });
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
-
-  const toggleAudio = () => {
-    if (localStreamRef.current) {
-      const audioTrack = localStreamRef.current.getAudioTracks()[0];
-      audioTrack.enabled = !audioTrack.enabled;
-      setIsAudioMuted(!audioTrack.enabled);
-    }
-  };
-
-  const toggleVideo = () => {
-    if (localStreamRef.current) {
-      const videoTrack = localStreamRef.current.getVideoTracks()[0];
-      videoTrack.enabled = !videoTrack.enabled;
-      setIsVideoOff(!videoTrack.enabled);
-    }
-  };
-
-  const handleEndCall = () => {
-    cleanup();
-    // Navigate away or handle end call
+    socketRef.current?.disconnect();
+    peerConnectionsRef.current.forEach(connection => connection.close());
+    localStreamRef.current?.getTracks().forEach(track => track.stop());
   };
 
   return (
@@ -246,64 +177,22 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
       <div className="studio-background" />
       <div className="studio-overlay">
         <div className="studio-circle">
-        {participants.map((participant, index) => (
-          <div key={participant.id} className="participant-seat">
-            <div className="seat-container">
-              <div className="chair" />
+          {participants.map(participant => (
+            <div key={participant.id} className="participant-seat">
+              <div className="seat-container">
                 <div className="video-container">
-                  <video
-                    className="video-stream"
-                    ref={el => {
-                    if (el && participant.id === 'local') {
-                      el.srcObject = participant.stream;
-                    }
-                  }}
-                autoPlay
-                playsInline
-                muted={participant.id === 'local'}
-                />
-                {participant.id === 'local' && (
-                <VideoProcessor videoRef={localVideoRef} onProcessedFace={handleFaceDetection} />
-                )}
+                  <video className="video-stream" ref={el => { if (el && participant.id === 'local') el.srcObject = participant.stream; }} autoPlay playsInline muted={participant.id === 'local'} />
+                </div>
+                <div className="participant-name">{participant.name}</div>
               </div>
-            <div className="participant-name">{participant.name}</div>
-          </div>
-          </div>
+            </div>
           ))}
         </div>
       </div>
-
       <div className="controls">
-        <button 
-          className="control-button" 
-          onClick={startRecording}
-          >
-          Start Recording
-        </button>
-        <button 
-          className="control-button" 
-          onClick={stopRecording}
-          >
-          Stop Recording
-        </button>
-        <button 
-          className={`control-button ${isAudioMuted ? 'active' : ''}`}
-          onClick={toggleAudio}
-        >
-          {isAudioMuted ? <MicOff /> : <Mic />}
-        </button>
-        <button 
-          className={`control-button ${isVideoOff ? 'active' : ''}`}
-          onClick={toggleVideo}
-        >
-          {isVideoOff ? <VideoOff /> : <Video />}
-        </button>
-        <button 
-          className="control-button active"
-          onClick={handleEndCall}
-        >
-          <PhoneOff />
-        </button>
+        <button className="control-button" onClick={() => setIsAudioMuted(!isAudioMuted)}>{isAudioMuted ? <MicOff /> : <Mic />}</button>
+        <button className="control-button" onClick={() => setIsVideoOff(!isVideoOff)}>{isVideoOff ? <VideoOff /> : <Video />}</button>
+        <button className="control-button active" onClick={cleanup}><PhoneOff /></button>
       </div>
     </div>
   );
