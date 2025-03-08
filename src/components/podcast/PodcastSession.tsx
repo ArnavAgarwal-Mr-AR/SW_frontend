@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, CircleDot, Share2, Check, UserPlus, X } from 'lucide-react';
 import './PodcastSession.css';
@@ -49,16 +49,7 @@ export const PodcastSession = () => {
   
 
   useEffect(() => {
-    console.log("Joining room with invite key:", inviteKey);
-    
-    socket.on('connect', () => {
-      console.log("Socket connected successfully");
-      socket.emit('join-room', inviteKey);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error("Socket connection error:", error);
-    });
+    socket.emit('join-room', inviteKey);
 
     socket.on('user-connected', async (newUserId: string) => {
       const peerConnection = createPeerConnection(newUserId);
@@ -133,51 +124,9 @@ export const PodcastSession = () => {
     };
   }, [inviteKey]);
 
-  useEffect(() => {
-    const initializeMedia = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-        
-        localStreamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
-        // Enable tracks by default
-        setIsVideoOn(true);
-        setIsMuted(false);
-
-        // Notify other users that we're ready to connect
-        socket.emit('ready-to-connect', inviteKey);
-      } catch (err) {
-        console.error('Error accessing media devices:', err);
-        setError('Failed to access camera/microphone');
-      }
-    };
-
-    initializeMedia();
-
-    // Clean up function
-    return () => {
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-      peerConnectionsRef.current.forEach(pc => pc.close());
-      peerConnectionsRef.current.clear();
-    };
-  }, [inviteKey]);
-
-  const createPeerConnection = useCallback((targetId: string) => {
-    console.log(`Creating peer connection for target: ${targetId}`);
-    
+  function createPeerConnection(userId: string) {
     const peerConnection = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-      ],
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
 
     peerConnection.onicecandidate = (event) => {
@@ -185,100 +134,27 @@ export const PodcastSession = () => {
         socket.emit('ice-candidate', {
           candidate: event.candidate,
           roomId: inviteKey,
-          targetId,
+          targetId: userId
         });
       }
     };
 
     peerConnection.ontrack = (event) => {
-      console.log(`Received track from peer: ${targetId}`);
       const [remoteStream] = event.streams;
-      const videoElement = document.getElementById(`video-${targetId}`) as HTMLVideoElement;
-      if (videoElement && remoteStream) {
+      const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement;
+      if (videoElement) {
         videoElement.srcObject = remoteStream;
       }
     };
 
-    // Add local tracks to the peer connection
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStreamRef.current!);
       });
     }
 
-    peerConnectionsRef.current.set(targetId, peerConnection);
     return peerConnection;
-  }, [inviteKey]);
-
-  useEffect(() => {
-    socket.on('user-ready', async (userId) => {
-      console.log(`User ${userId} is ready to connect`);
-      const peerConnection = createPeerConnection(userId);
-      
-      try {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        
-        socket.emit('offer', {
-          offer,
-          roomId: inviteKey,
-          targetId: userId,
-        });
-      } catch (err) {
-        console.error('Error creating offer:', err);
-      }
-    });
-
-    socket.on('offer', async ({ offer, senderId }) => {
-      console.log(`Received offer from ${senderId}`);
-      const peerConnection = createPeerConnection(senderId);
-      
-      try {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        
-        socket.emit('answer', {
-          answer,
-          roomId: inviteKey,
-          targetId: senderId,
-        });
-      } catch (err) {
-        console.error('Error handling offer:', err);
-      }
-    });
-
-    socket.on('answer', async ({ answer, senderId }) => {
-      console.log(`Received answer from ${senderId}`);
-      const peerConnection = peerConnectionsRef.current.get(senderId);
-      if (peerConnection) {
-        try {
-          await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        } catch (err) {
-          console.error('Error setting remote description:', err);
-        }
-      }
-    });
-
-    socket.on('ice-candidate', async ({ candidate, senderId }) => {
-      console.log(`Received ICE candidate from ${senderId}`);
-      const peerConnection = peerConnectionsRef.current.get(senderId);
-      if (peerConnection) {
-        try {
-          await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (err) {
-          console.error('Error adding ICE candidate:', err);
-        }
-      }
-    });
-
-    return () => {
-      socket.off('user-ready');
-      socket.off('offer');
-      socket.off('answer');
-      socket.off('ice-candidate');
-    };
-  }, [inviteKey, createPeerConnection]);
+  }
 
   function stopLocalTracks() {
     if (localStreamRef.current) {
