@@ -51,21 +51,24 @@ export const JoinPodcast = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/join-session`,
+        `https://backend-pdis.onrender.com/join-session`,
         { inviteKey: inputKey },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log('Response:', response.data);
+      console.log('Server Response:', response.data);
 
       if (response.data.success) {
+        console.log("Successfully joined session:", response.data.sessionId);
         navigate(`/session/${response.data.sessionId}`);
       } else {
+        console.warn("Join failed:", response.data.message);
         setMessage('Invalid invite key or session not available.');
       }
     } catch (error) {
       console.error('Error:', error);
       if (axios.isAxiosError(error) && error.response) {
+        console.warn("Server responded with error:", error.response.data);
         setMessage(error.response.data.message || 'An error occurred while joining the session.');
       } else {
         setMessage('An error occurred while joining the session.');
