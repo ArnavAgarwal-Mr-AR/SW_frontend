@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { setToken, removeToken } from '../utils/auth';
+import { setToken, getToken, removeToken } from '../utils/auth';
 
 interface User {
   id: string;
@@ -18,8 +18,11 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: null,
-  setToken: (token) => set({ token }),
+  token: getToken(), // Get token from localStorage on load
+  setToken: (token) => {
+    setToken(token);
+    set({ token });
+  },
   login: ({ user, token }) => {
     setToken(token);
     set({ user, token });
