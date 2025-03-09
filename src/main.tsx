@@ -12,6 +12,8 @@ import { SettingsPage } from './components/settings/SettingsPage';
 import App from './App';
 import './index.css';
 
+const NotFound = () => <h1>404 - Page Not Found</h1>;
+
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
@@ -27,6 +29,7 @@ createRoot(rootElement).render(
         <Route path="/create-podcast" element={<CreatePodcast />} />
         <Route path="/join-podcast" element={<JoinPodcast />} />
         <Route path="/session/:inviteKey" element={<PodcastSession />} />
+        <Route path="*" element={<NotFound />} /> {/* 404 fallback */}
       </Routes>
     </Router>
   </React.StrictMode>
