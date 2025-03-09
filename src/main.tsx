@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
@@ -29,7 +29,7 @@ createRoot(rootElement).render(
         <Route path="/create-podcast" element={<CreatePodcast />} />
         <Route path="/join-podcast" element={<JoinPodcast />} />
         <Route path="/session/:inviteKey" element={<PodcastSession />} />
-        <Route path="*" element={<NotFound />} /> {/* 404 fallback */}
+        <Route path="*" element={<Navigate to="/" />} /> {/* 404 fallback */}
       </Routes>
     </Router>
   </React.StrictMode>
