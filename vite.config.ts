@@ -37,19 +37,12 @@ export default defineConfig({
       '@tensorflow-models/face-landmarks-detection'
     ]
   },
-  base: "/", // ✅ Ensures routing works correctly in production
-
-  // ✅ Fixes React Router history issues
-  resolve: {
-    alias: {
-      'react-router-dom': require.resolve('react-router-dom'),
-    },
-  },
-
-  // ✅ Enables proper history fallback for React Router
+  base: "/", // ✅ Ensures correct routing
   server: {
     host: true,
     port: 5173,
-    historyApiFallback: true,  // ✅ Force Vite to handle frontend routing
+    open: true,  // ✅ Opens the browser automatically
+    strictPort: true, // ✅ Ensures Vite always runs on the defined port
+    historyApiFallback: true,  // ✅ Tells Vite to serve index.html for all routes
   },
 });
