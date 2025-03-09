@@ -344,9 +344,9 @@ export const PodcastSession = () => {
   const handleShare = async (platform: 'whatsapp' | 'email' | 'sms') => {
     const shareUrl = `${window.location.origin}/join-podcast?key=${inviteKey}`;
     const message = `
- Podcast Invitation! Your presence is needed!
+Podcast Invitation! Your presence is needed!
 
-Hey! ${user.name} would love to have you as a guest on their podcast."}"!
+Hey! ${user.name} would love to have you as a guest on their podcast.
 
 Login to spinningwheel.app and enter this invite key in join podcast session. 
 Your Invite Key: ${inviteKey}
