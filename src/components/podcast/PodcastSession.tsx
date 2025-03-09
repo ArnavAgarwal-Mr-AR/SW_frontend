@@ -350,10 +350,7 @@ Hey! ${user.name} would love to have you as a guest on their podcast."}"!
 
 Login to spinningwheel.app and enter this invite key in join podcast session. 
 Your Invite Key: ${inviteKey}
-{/*
-  Join using this link:
-  ${shareUrl}
-*/}
+
 Looking forward to having you on the show!
 `;
 
