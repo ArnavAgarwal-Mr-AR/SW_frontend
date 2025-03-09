@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // This will allow the server to be accessed from the network
-    port: 5173, // You can change the port if needed
+    host: true, 
+    port: 5173, 
     proxy: {
       '/api': {
         target: 'https://backend-pdis.onrender.com',
@@ -26,6 +26,9 @@ export default defineConfig({
       }
     },
   },
+  build: {
+    outDir: 'dist',
+  },
   optimizeDeps: {
     include: [
       '@tensorflow/tfjs',
@@ -33,5 +36,11 @@ export default defineConfig({
       '@tensorflow/tfjs-backend-webgl',
       '@tensorflow-models/face-landmarks-detection'
     ]
-  }
+  },
+  base: "/", // ✅ Ensures correct routing in production
+
+  // ✅ Fix refresh issue when using React Router
+  esbuild: {
+    jsxInject: `import React from 'react'`, // Helps with React usage
+  },
 });
