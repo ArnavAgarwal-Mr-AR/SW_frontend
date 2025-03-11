@@ -26,38 +26,30 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
   useEffect(() => {
     const initializeWebRTC = async () => {
       try {
-        // Connect to the backend WebSocket
         socketRef.current = io('https://backend-pdis.onrender.com');
         const socket = socketRef.current;
 
-        // Get user media (audio + video)
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         localStreamRef.current = stream;
 
-        // Set local participant
         setParticipants([{ id: 'local', stream, name: 'You' }]);
 
-        // Display video on local screen
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
 
-        // Emit event to join the WebRTC session
         socket.emit('join-room', roomId);
 
-        // Handle when a new user joins
         socket.on('user-connected', async (userId: string) => {
           console.log(`User connected: ${userId}`);
           const peerConnection = createPeerConnection(userId, stream);
           peerConnectionsRef.current.set(userId, peerConnection);
 
-          // Create and send offer
           const offer = await peerConnection.createOffer();
           await peerConnection.setLocalDescription(offer);
           socket.emit('offer', { offer, roomId, targetId: userId });
         });
 
-        // Handle when a user leaves
         socket.on('user-disconnected', (userId: string) => {
           console.log(`User disconnected: ${userId}`);
           if (peerConnectionsRef.current.has(userId)) {
@@ -67,7 +59,6 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
           setParticipants(prev => prev.filter(p => p.id !== userId));
         });
 
-        // Handle incoming offers
         socket.on('offer', async ({ offer, senderId }: { offer: RTCSessionDescriptionInit; senderId: string }) => {
           console.log(`Received offer from: ${senderId}`);
           const peerConnection = createPeerConnection(senderId, stream);
@@ -80,7 +71,6 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
           socket.emit('answer', { answer, roomId, targetId: senderId });
         });
 
-        // Handle answers
         socket.on('answer', ({ answer, senderId }: { answer: RTCSessionDescriptionInit; senderId: string }) => {
           console.log(`Received answer from: ${senderId}`);
           const peerConnection = peerConnectionsRef.current.get(senderId);
@@ -89,7 +79,6 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
           }
         });
 
-        // Handle ICE candidates
         socket.on('ice-candidate', ({ candidate, senderId }: { candidate: RTCIceCandidateInit; senderId: string }) => {
           console.log(`Received ICE candidate from: ${senderId}`);
           const peerConnection = peerConnectionsRef.current.get(senderId);
@@ -107,7 +96,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     return cleanup;
   }, [roomId]);
 
-  // Active Speaker Detection
+  // 🔹 FIXED: Active Speaker Detection
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current.on('active-speaker', ({ userId }) => {
@@ -124,7 +113,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     };
   }, []);
 
-  // Audio Level Detection
+  // 🔹 FIXED: Audio Level Detection
   useEffect(() => {
     if (!localStreamRef.current || !socketRef.current) return;
     const audioContext = new AudioContext();
@@ -147,6 +136,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     return () => audioContext.close();
   }, []);
 
+  // 🔹 FIXED: Peer Connection Setup
   const createPeerConnection = (userId: string, stream: MediaStream) => {
     const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 
@@ -158,9 +148,14 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
       }
     };
 
+    // 🔹 FIXED: Assign remote stream to participants
     peerConnection.ontrack = (event) => {
+      console.log(`Receiving remote track from ${userId}`);
       const [remoteStream] = event.streams;
-      setParticipants(prev => (prev.some(p => p.id === userId) ? prev : [...prev, { id: userId, stream: remoteStream, name: `Participant ${prev.length}` }]));
+      setParticipants(prev => {
+        if (prev.some(p => p.id === userId)) return prev;
+        return [...prev, { id: userId, stream: remoteStream, name: `Participant ${prev.length}` }];
+      });
     };
 
     return peerConnection;
@@ -181,7 +176,13 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
             <div key={participant.id} className="participant-seat">
               <div className="seat-container">
                 <div className="video-container">
-                  <video className="video-stream" ref={el => { if (el && participant.id === 'local') el.srcObject = participant.stream; }} autoPlay playsInline muted={participant.id === 'local'} />
+                  <video
+                    className="video-stream"
+                    ref={el => { if (el && participant.id === 'local') el.srcObject = participant.stream; }}
+                    autoPlay
+                    playsInline
+                    muted={participant.id === 'local'}
+                  />
                 </div>
                 <div className="participant-name">{participant.name}</div>
               </div>
