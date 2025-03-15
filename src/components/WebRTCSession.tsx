@@ -57,6 +57,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
             peerConnectionsRef.current.delete(userId);
           }
           setParticipants(prev => prev.filter(p => p.id !== userId));
+          socket.emit('update-participant-count', { roomId });
         });
 
         socket.on('offer', async ({ offer, senderId }: { offer: RTCSessionDescriptionInit; senderId: string }) => {
@@ -95,6 +96,18 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     initializeWebRTC();
     return cleanup;
   }, [roomId]);
+ 
+  // 🔹 FIXED: Update participant count
+  useEffect(() => {
+    if (!socketRef.current) return;
+    socketRef.current.on('participant-count', (count: number) => {
+      console.log(`Updated participant count: ${count}`);
+    });
+
+    return () => {
+      socketRef.current?.off('participant-count');
+    };
+  }, []);
 
   // 🔹 FIXED: Active Speaker Detection
   useEffect(() => {
@@ -136,6 +149,15 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
     return () => audioContext.close();
   }, []);
 
+  const createPeerConnection = (userId: string) => {
+    const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current?.emit('ice-candidate', { candidate: event.candidate, roomId, targetId: userId });
+      }
+    };
+    /*
   // 🔹 FIXED: Peer Connection Setup
   const createPeerConnection = (userId: string, stream: MediaStream) => {
     const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
@@ -147,7 +169,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
         socketRef.current?.emit('ice-candidate', { candidate: event.candidate, roomId, targetId: userId });
       }
     };
-
+    */
     // 🔹 FIXED: Assign remote stream to participants
     peerConnection.ontrack = (event) => {
       console.log(`Receiving remote track from ${userId}`);
