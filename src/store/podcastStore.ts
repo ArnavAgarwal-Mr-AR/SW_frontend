@@ -53,7 +53,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 
   createSession: async (title: string) => {
     try {
-      const response = await fetch('https://backend-pdis.onrender.com/api/sessions', {
+      //const response = await fetch('https://backend-pdis.onrender.com/api/sessions', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +84,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
     console.log(`Joining session with inviteKey: ${inviteKey}`);
   
     try {
-      const response = await fetch('https://backend-pdis.onrender.com/join-session', {
+      //const response = await fetch('https://backend-pdis.onrender.com/join-session', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +163,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 
   fetchSavedPodcasts: async () => {
     try {
-      const response = await fetch('https://backend-pdis.onrender.com/api/savedPodcasts', {
+      //const response = await fetch('https://backend-pdis.onrender.com/api/savedPodcasts', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
         },

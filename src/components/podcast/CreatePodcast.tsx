@@ -15,7 +15,8 @@ export const CreatePodcast = () => {
       const title = new Date().toLocaleString(); // Set title to current date and time
 
       try {
-        const response = await fetch('https://backend-pdis.onrender.com/api/sessions', {
+        //const response = await fetch('https://backend-pdis.onrender.com/api/sessions', {
+        const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/sessions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

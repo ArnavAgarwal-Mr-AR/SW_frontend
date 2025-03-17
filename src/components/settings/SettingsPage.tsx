@@ -16,7 +16,8 @@ export const SettingsPage = () => {
 
   const handleNameChange = async () => {
     try {
-      const response = await fetch(`https://backend-pdis.onrender.com/api/updateName`, {
+      //const response = await fetch(`https://backend-pdis.onrender.com/api/updateName`, {
+      const response = await fetch(`${BACKEND_URL}/api/updateName`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +46,8 @@ export const SettingsPage = () => {
     formData.append('profilePhoto', profilePhoto);
 
     try {
-      const response = await fetch(`https://backend-pdis.onrender.com/api/updateProfilePhoto`, {
+      //const response = await fetch(`https://backend-pdis.onrender.com/api/updateProfilePhoto`, {
+      const response = await fetch(`${BACKEND_URL}/api/updateProfilePhoto`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -68,7 +70,8 @@ export const SettingsPage = () => {
 
   const handlePasswordChange = async () => {
     try {
-      const response = await fetch(`https://backend-pdis.onrender.com/api/changePassword`, {
+      //const response = await fetch(`https://backend-pdis.onrender.com/api/changePassword`, {
+      const response = await fetch(`${BACKEND_URL}/api/changePassword`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

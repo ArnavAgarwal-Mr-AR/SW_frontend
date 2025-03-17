@@ -8,7 +8,8 @@ export default defineConfig({
     port: 5173, 
     proxy: {
       '/api': {
-        target: 'https://backend-pdis.onrender.com',
+        //target: 'https://backend-pdis.onrender.com',
+        target: 'https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
