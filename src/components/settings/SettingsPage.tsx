@@ -17,7 +17,7 @@ export const SettingsPage = () => {
   const handleNameChange = async () => {
     try {
       //const response = await fetch(`https://backend-pdis.onrender.com/api/updateName`, {
-      const response = await fetch(`${BACKEND_URL}/api/updateName`, {
+      const response = await fetch(`https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/updateName`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export const SettingsPage = () => {
 
     try {
       //const response = await fetch(`https://backend-pdis.onrender.com/api/updateProfilePhoto`, {
-      const response = await fetch(`${BACKEND_URL}/api/updateProfilePhoto`, {
+      const response = await fetch(`https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/updateProfilePhoto`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -71,7 +71,7 @@ export const SettingsPage = () => {
   const handlePasswordChange = async () => {
     try {
       //const response = await fetch(`https://backend-pdis.onrender.com/api/changePassword`, {
-      const response = await fetch(`${BACKEND_URL}/api/changePassword`, {
+      const response = await fetch(`https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/changePassword`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

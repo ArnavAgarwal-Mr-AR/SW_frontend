@@ -272,7 +272,7 @@ export const PodcastSession = () => {
     formData.append('activeSpeakerId', activeSpeakerId || '');
   
     try {
-      const response = await fetch('https://backend-pdis.onrender.com/upload', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/upload', {
         method: 'POST',
         body: formData,
         headers: {
