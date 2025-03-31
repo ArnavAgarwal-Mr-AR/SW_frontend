@@ -85,7 +85,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
   
     try {
       //const response = await fetch('https://backend-pdis.onrender.com/join-session', {
-      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/join-session', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/join-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,5 +194,8 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
 }));
 
 // Initialize socket connection somewhere in your app
-const socket = io('https://your-socket-server.com');
+const socket = io('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app', {
+  transports: ['websocket'],
+  withCredentials: true,
+});
 usePodcastStore.getState().setSocket(socket);
