@@ -99,23 +99,15 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
         throw new Error('Invalid invite key');
       }
       
-      const sessionData = {
-        ...data.session,
-        inviteKey: data.session.invite_key,
-        id: data.session.session_id,
-        room_id: data.session.invite_key,
-      };
-  
-      // Set the full session object
       set({
         currentSession: {
           id: data.sessionId,
           room_id: data.sessionId,
-          title: '',         // Optional: can be filled later
-          host_id: '',       // Optional: can be filled later
-          status: 'active',  // Assume it's active
+          title: '',
+          host_id: '',
+          status: 'active',
           recording: false,
-        }
+        },
       });
   
       return true;
