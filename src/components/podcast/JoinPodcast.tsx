@@ -60,7 +60,7 @@ export const JoinPodcast = () => {
 
       if (response.data.success) {
         // We received a valid session response, navigate to it
-        navigate(`/session/${response.data.sessionId}`);
+        navigate(`/session/${response.data.session.invite_key}`);
       } else {
         setError('Failed to join session: ' + (response.data.message || 'Unknown error'));
       }

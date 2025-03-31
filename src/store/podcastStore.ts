@@ -98,9 +98,17 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
       if (!data.success) {
         throw new Error('Invalid invite key');
       }
+      
+      const sessionData = {
+        ...data.session,
+        inviteKey: data.session.invite_key,
+        id: data.session.session_id,
+        room_id: data.session.invite_key,
+      };
   
-      io.emit('join-room', data.sessionId);
-      set({ currentSession: data.sessionId });
+      // Set the full session object
+      set({ currentSession: sessionData });
+  
       return true;
     } catch (error) {
       console.error('Error joining session:', error);
