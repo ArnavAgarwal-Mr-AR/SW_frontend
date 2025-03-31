@@ -95,7 +95,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
       });
   
       const data = await response.json();
-      if (!data.success) {
+      if (!data.success || !data.sessionId) {
         throw new Error('Invalid invite key');
       }
       
@@ -107,7 +107,16 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
       };
   
       // Set the full session object
-      set({ currentSession: sessionData });
+      set({
+        currentSession: {
+          id: data.sessionId,
+          room_id: data.sessionId,
+          title: '',         // Optional: can be filled later
+          host_id: '',       // Optional: can be filled later
+          status: 'active',  // Assume it's active
+          recording: false,
+        }
+      });
   
       return true;
     } catch (error) {
