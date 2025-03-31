@@ -49,9 +49,34 @@ export const PodcastSession = () => {
   
 
   useEffect(() => {
+    const initLocalStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+    
+        localStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+    
+        setIsVideoOn(true);
+        setIsMuted(false); // assume mic is on
+      } catch (err) {
+        console.error('Failed to access local media devices:', err);
+      }
+    };    
+
+    initLocalStream();
+
     socket.emit('join-room', inviteKey);
 
     socket.on('user-connected', async (newUserId: string) => {
+      if (!localStreamRef.current) {
+        console.warn("Local stream not ready, skipping offer.");
+        return;
+      }
       const peerConnection = createPeerConnection(newUserId);
       peerConnectionsRef.current.set(newUserId, peerConnection);
 
@@ -183,8 +208,8 @@ export const PodcastSession = () => {
   async function toggleVideo() {
     if (isVideoOn) {
       if (localStreamRef.current) {
-        const videoTrack = localStreamRef.current.getVideoTracks()[0];
-        if (videoTrack) videoTrack.stop();
+        const videoTrack = localStreamRef.current?.getVideoTracks()[0];
+        if (videoTrack) videoTrack.enabled = !videoTrack.enabled;
       }
       setIsVideoOn(false);
     } else {
@@ -207,8 +232,8 @@ export const PodcastSession = () => {
   async function toggleAudio() {
     if (!isMuted) {
       if (localStreamRef.current) {
-        const audioTrack = localStreamRef.current.getAudioTracks()[0];
-        if (audioTrack) audioTrack.stop();
+        const audioTrack = localStreamRef.current?.getAudioTracks()[0];
+        if (audioTrack) audioTrack.enabled = !audioTrack.enabled;
       }
       setIsMuted(true);
     } else {
