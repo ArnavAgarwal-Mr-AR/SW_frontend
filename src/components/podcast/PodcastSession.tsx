@@ -73,7 +73,7 @@ export const PodcastSession = () => {
       }
       setParticipants((prev) => prev.filter(p => p.id !== disconnectedId));
     });
-    
+    /*
     socket.on("user-disconnected", (userId) => {
       console.log(`User ${userId} disconnected`);
       delete peerConnections[userId]; // Remove from peer connections
@@ -83,7 +83,7 @@ export const PodcastSession = () => {
           videoElement.remove();
       }
   });
-  
+  */
     socket.on('offer', async ({ offer, senderId }) => {
       const peerConnection = createPeerConnection(senderId);
       peerConnectionsRef.current.set(senderId, peerConnection);
@@ -151,11 +151,19 @@ export const PodcastSession = () => {
 
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
-      const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement;
-      if (videoElement) {
-        videoElement.srcObject = remoteStream;
-      }
+    
+      const tryAssignStream = () => {
+        const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement | null;
+        if (videoElement) {
+          videoElement.srcObject = remoteStream;
+        } else {
+          setTimeout(tryAssignStream, 100); // Retry after 100ms if not found
+        }
+      };
+    
+      tryAssignStream();
     };
+    
 
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
@@ -398,6 +406,7 @@ Looking forward to having you on the show!
               className="video-stream"
               autoPlay
               playsInline
+              muted={participant.id === user?.id} // <-- Only mute yourself
             />
           </div>
         ))}
