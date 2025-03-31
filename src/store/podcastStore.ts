@@ -34,7 +34,7 @@ interface PodcastState {
   participants: Participant[];
   socket: Socket | null;
   createSession: (title: string) => Promise<boolean>;
-  joinSession: (session: Session) => boolean;
+  joinSession: (inviteKey: string) => Promise<boolean>;
   leaveSession: () => void;
   endSession: () => void;
   toggleRecording: () => void;
@@ -85,7 +85,7 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
   
     try {
       //const response = await fetch('https://backend-pdis.onrender.com/join-session', {
-      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/join-session', {
+      const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/join-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
