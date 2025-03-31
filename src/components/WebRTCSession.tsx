@@ -158,37 +158,39 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
         socketRef.current?.emit('ice-candidate', { candidate: event.candidate, roomId, targetId: userId });
       }
     };
-    /*
-  // 🔹 FIXED: Peer Connection Setup
-  const createPeerConnection = (userId: string, stream: MediaStream) => {
-    const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socketRef.current?.emit('ice-candidate', { candidate: event.candidate, roomId, targetId: userId });
-      }
-    };
-    */
     // 🔹 FIXED: Assign remote stream to participants
     peerConnection.ontrack = (event) => {
       console.log(`Receiving remote track from ${userId}`);
       const [remoteStream] = event.streams;
-      setParticipants(prev => {
-        if (prev.some(p => p.id === userId)) return prev;
-        return [...prev, { id: userId, stream: remoteStream, name: `Participant ${prev.length}` }];
-      });
+      setTimeout(() => {
+        setParticipants(prev => {
+          if (prev.some(p => p.id === userId)) return prev;
+          return [...prev, { id: userId, stream: remoteStream, name: `Participant ${prev.length + 1}` }];
+        });
+      }, 100); // Small delay ensures DOM is ready
     };
 
     return peerConnection;
   };
 
   const cleanup = () => {
+    socketRef.current?.off('user-connected');
+    socketRef.current?.off('user-disconnected');
+    socketRef.current?.off('offer');
+    socketRef.current?.off('answer');
+    socketRef.current?.off('ice-candidate');
+    socketRef.current?.off('participant-count');
+    socketRef.current?.off('active-speaker');
+  
     socketRef.current?.disconnect();
     peerConnectionsRef.current.forEach(connection => connection.close());
+    peerConnectionsRef.current.clear();
     localStreamRef.current?.getTracks().forEach(track => track.stop());
+  
+    setParticipants([]); // Clear UI
   };
+  
 
   return (
     <div className="studio-container">
@@ -205,6 +207,11 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
                     autoPlay
                     playsInline
                     muted={participant.id === 'local'}
+                    ref={(el) => {
+                      if (el && participant.stream) {
+                        el.srcObject = participant.stream;
+                      }
+                    }}
                   />
                 </div>
                 <div className="participant-name">{participant.name}</div>
