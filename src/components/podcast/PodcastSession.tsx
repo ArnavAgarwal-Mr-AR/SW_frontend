@@ -308,12 +308,14 @@ export const PodcastSession = () => {
       }
 
       console.log('Session ended successfully');
+      // ❗️Also update Zustand state after backend confirms end
+      usePodcastStore.getState().endSession();
     } catch (error) {
       console.error('Error ending session:', error);
     }
   }
 
-  function handleEndSession() {
+  async function handleEndSession() {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
