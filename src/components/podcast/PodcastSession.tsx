@@ -304,6 +304,8 @@ export const PodcastSession = () => {
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Backend error:', errorData.error);
         throw new Error('Failed to end session');
       }
 
