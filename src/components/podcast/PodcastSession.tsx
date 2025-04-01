@@ -49,6 +49,9 @@ export const PodcastSession = () => {
   
 
   useEffect(() => {
+    window.onbeforeunload = () => {
+      cleanupWebRTC();
+    };
     const initLocalStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -98,17 +101,7 @@ export const PodcastSession = () => {
       }
       setParticipants((prev) => prev.filter(p => p.id !== disconnectedId));
     });
-    /*
-    socket.on("user-disconnected", (userId) => {
-      console.log(`User ${userId} disconnected`);
-      delete peerConnections[userId]; // Remove from peer connections
-  
-      const videoElement = document.getElementById(`video-${userId}`);
-      if (videoElement) {
-          videoElement.remove();
-      }
-  });
-  */
+
     socket.on('offer', async ({ offer, senderId }) => {
       const peerConnection = createPeerConnection(senderId);
       peerConnectionsRef.current.set(senderId, peerConnection);
@@ -155,7 +148,7 @@ export const PodcastSession = () => {
       socket.off('ice-candidate');
       socket.off('participant-count');
       socket.off('active-speaker');
-      stopLocalTracks();
+      cleanupWebRTC();
     };
   }, [inviteKey]);
 
@@ -174,6 +167,12 @@ export const PodcastSession = () => {
       }
     };
 
+    peerConnection.onnegotiationneeded = async () => {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
+    };
+    
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
     
@@ -325,6 +324,7 @@ export const PodcastSession = () => {
   }
   
 
+  
   async function endSession() {
     try {
       const response = await fetch('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/sessions/end', {
@@ -350,16 +350,27 @@ export const PodcastSession = () => {
     }
   }
 
+  function cleanupWebRTC() {
+    peerConnectionsRef.current.forEach(pc => pc.close());
+    peerConnectionsRef.current.clear();
+  
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+    }
+  
+    socket.disconnect();
+  }  
+
   async function handleEndSession() {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-      }
+      if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
     }
+    cleanupWebRTC();
     stopLocalTracks();
-    endSession();
+    await endSession();
     navigate('/dashboard');
   }
 
