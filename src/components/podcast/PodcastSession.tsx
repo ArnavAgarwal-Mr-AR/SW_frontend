@@ -49,31 +49,28 @@ export const PodcastSession = () => {
   
 
   useEffect(() => {
-    window.onbeforeunload = () => {
-      cleanupWebRTC();
+    const init = async () => {
+      await initLocalStream();
+      socket.emit('join-room', inviteKey);
     };
+
     const initLocalStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true,
+          audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 },
         });
-    
         localStreamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-    
+        if (videoRef.current) videoRef.current.srcObject = stream;
         setIsVideoOn(true);
-        setIsMuted(false); // assume mic is on
+        setIsMuted(false);
       } catch (err) {
-        console.error('Failed to access local media devices:', err);
+        console.error('Failed to access media devices:', err);
       }
-    };    
+    };
 
-    initLocalStream();
-
-    socket.emit('join-room', inviteKey);
+    init();
+    window.onbeforeunload = cleanupWebRTC;   
 
     socket.on('user-connected', async (newUserId: string) => {
       if (!localStreamRef.current) {
@@ -82,7 +79,6 @@ export const PodcastSession = () => {
       }
       const peerConnection = createPeerConnection(newUserId);
       peerConnectionsRef.current.set(newUserId, peerConnection);
-
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
       socket.emit('offer', { offer, roomId: inviteKey, targetId: newUserId });
@@ -181,7 +177,7 @@ export const PodcastSession = () => {
         if (videoElement) {
           videoElement.srcObject = remoteStream;
         } else {
-          setTimeout(tryAssignStream, 100); // Retry after 100ms if not found
+          setTimeout(tryAssignStream, 100); 
         }
       };
     
@@ -358,7 +354,8 @@ export const PodcastSession = () => {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
-  
+    if (videoRef.current) videoRef.current.srcObject = null;
+
     socket.disconnect();
   }  
 
