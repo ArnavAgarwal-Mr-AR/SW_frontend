@@ -152,8 +152,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
 
   const createPeerConnection = (userId: string) => {
     const peerConnection = new RTCPeerConnection({ iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls:'turn:turn01.hubl.in?transport=udp'}]});
+      { urls: 'stun:stun.l.google.com:19302' }]});
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
