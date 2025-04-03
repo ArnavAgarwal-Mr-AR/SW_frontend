@@ -86,9 +86,18 @@ export const PodcastSession = () => {
       setParticipants((prev) => [...prev, { id: newUserId, isActiveSpeaker: false }]);
     });
 
-    socket.on('existing-participants', (existingIds: string[]) => {
-      setParticipants(existingIds.map(id => ({ id, isActiveSpeaker: false })));
-    });
+    socket.on('existing-participants', async (existingIds: string[]) => {
+      for (const id of existingIds) {
+        const peerConnection = createPeerConnection(id);
+        peerConnectionsRef.current.set(id, peerConnection);
+    
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', { offer, roomId: inviteKey, targetId: id });
+    
+        setParticipants((prev) => [...prev, { id, isActiveSpeaker: false }]);
+      }
+    });    
 
     socket.on('user-disconnected', (disconnectedId: string) => {
       if (peerConnectionsRef.current.has(disconnectedId)) {
@@ -200,6 +209,12 @@ export const PodcastSession = () => {
     }
   }
 
+  function stopAndCleanupMedia() {
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    localStreamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  }
+  
   async function toggleVideo() {
     if (isVideoOn) {
       if (localStreamRef.current) {
@@ -357,15 +372,21 @@ export const PodcastSession = () => {
     if (videoRef.current) videoRef.current.srcObject = null;
 
     socket.disconnect();
+    stopAndCleanupMedia();
   }  
 
   async function handleEndSession() {
+    if (user?.id === currentSession?.host_id && participants.length > 0) {
+      alert("Guests are still in the session. Ask them to leave before ending it.");
+      return;
+    }    
     if (isRecording) {
       mediaRecorderRef.current?.stop();
       setIsRecording(false);
       if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
     }
     cleanupWebRTC();
+    stopAndCleanupMedia();
     stopLocalTracks();
     await endSession();
     navigate('/dashboard');

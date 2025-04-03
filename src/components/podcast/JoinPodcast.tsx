@@ -47,7 +47,6 @@ export const JoinPodcast = () => {
 
     try {
       const response = await axios.post(
-        //'https://backend-pdis.onrender.com/api/join-session',
         'https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app/api/join-session',
         { inviteKey: key.trim() },
         {

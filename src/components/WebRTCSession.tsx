@@ -87,7 +87,7 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
           if (peerConnection) {
             peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
           }
-        });
+        });        
 
       } catch (error) {
         console.error('Error initializing WebRTC:', error);
@@ -151,7 +151,9 @@ const WebRTCSession: React.FC<WebRTCSessionProps> = ({ roomId = 'default-room' }
   }, []);
 
   const createPeerConnection = (userId: string) => {
-    const peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    const peerConnection = new RTCPeerConnection({ iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls:'turn:turn01.hubl.in?transport=udp'}]});
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
