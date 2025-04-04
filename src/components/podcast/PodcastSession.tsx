@@ -140,6 +140,13 @@ export const PodcastSession = () => {
       );
     });
 
+    socket.on('session-ended', () => {
+      alert("Session ended by host.");
+      cleanupWebRTC();
+      stopLocalTracks();
+      navigate('/dashboard');
+    });
+    
     socket.on('participant-count', (count: number) => {
       setParticipantCount(count);
     });
