@@ -271,6 +271,11 @@ export const PodcastSession = () => {
   }
 
   function handleToggleRecording() {
+    if (user?.id !== currentSession?.host_id) {
+      alert("Only the host can control recording.");
+      return;
+    }
+
     if (!isRecording) {
       if (localStreamRef.current) {
         recordedChunksRef.current = [];
@@ -497,13 +502,15 @@ Looking forward to having you on the show!
           {isMuted ? <MicOff /> : <Mic />}
         </button>
 
-        <button
-          onClick={handleToggleRecording}
-          className={`control-button ${isRecording ? 'recording' : ''}`}
-          title={isRecording ? 'Stop Recording' : 'Start Recording'}
-        >
-          <CircleDot />
-        </button>
+        {user?.id === currentSession?.host_id && (
+          <button
+            onClick={handleToggleRecording}
+            className={`control-button ${isRecording ? 'recording' : ''}`}
+            title={isRecording ? 'Stop Recording' : 'Start Recording'}
+          >
+            <CircleDot />
+          </button>
+        )} 
 
         <button
           onClick={() => setShowInvitePopup(true)}
