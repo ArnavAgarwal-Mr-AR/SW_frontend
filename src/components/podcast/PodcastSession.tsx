@@ -87,6 +87,7 @@ export const PodcastSession = () => {
     });
 
     socket.on('existing-participants', async (existingIds: string[]) => {
+      if (!localStreamRef.current) await initLocalStream();
       for (const id of existingIds) {
         const peerConnection = createPeerConnection(id);
         peerConnectionsRef.current.set(id, peerConnection);
