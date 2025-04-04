@@ -186,6 +186,13 @@ export const PodcastSession = () => {
       socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
     };
     
+    peerConnection.oniceconnectionstatechange = () => {
+      if (peerConnection.iceConnectionState === 'disconnected') {
+        peerConnection.close();
+        peerConnectionsRef.current.delete(userId);
+      }
+    };    
+
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
     
