@@ -192,6 +192,7 @@ export const PodcastSession = () => {
     };
     
     peerConnection.oniceconnectionstatechange = () => {
+      console.log(`ICE state with ${userId}:`, peerConnection.iceConnectionState);
       if (peerConnection.iceConnectionState === 'disconnected') {
         peerConnection.close();
         peerConnectionsRef.current.delete(userId);
