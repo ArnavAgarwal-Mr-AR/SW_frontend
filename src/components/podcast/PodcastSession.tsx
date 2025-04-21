@@ -5,7 +5,7 @@ import './PodcastSession.css';
 import { usePodcastStore } from '../../store/podcastStore';
 import { useAuthStore } from '../../store/authStore';
 import { socket } from '../../utils/socket';
-import twilio from 'twilio'; 
+ 
 
 interface Participant {
   id: string;
@@ -35,10 +35,7 @@ export const PodcastSession = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const client = twilio(accountSid, authToken);
-
+  
   const getVideoContainerClass = () => {
     const count = participants.length + 1; // +1 for local user
   
@@ -168,61 +165,73 @@ export const PodcastSession = () => {
       cleanupWebRTC();
     };
   }, [inviteKey]);
-
-  // Create RTCPeerConnection
-  const myIceServers = ICE_SERVERS;
-  const configuration = { iceServers: myIceServers };
-  function createPeerConnection(userId: string) {
-    const peerConnection = new RTCPeerConnection(configuration);
-
+  
+  async function createPeerConnection(userId: string): Promise<RTCPeerConnection> {
+    let iceServers;
+  
+    try {
+      const response = await fetch('/api/ice-token');
+      const data = await response.json();
+      iceServers = data.iceServers;
+    } catch (error) {
+      console.error('Failed to fetch ICE servers:', error);
+      // fallback to basic STUN server
+      iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+    }
+  
+    const peerConnection = new RTCPeerConnection({ iceServers });
+  
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit('ice-candidate', {
           candidate: event.candidate,
           roomId: inviteKey,
-          targetId: userId
+          targetId: userId,
         });
       }
     };
-
+  
     peerConnection.onnegotiationneeded = async () => {
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
+      try {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
+      } catch (err) {
+        console.error('Negotiation error:', err);
+      }
     };
-    
+  
     peerConnection.oniceconnectionstatechange = () => {
       console.log(`ICE state with ${userId}:`, peerConnection.iceConnectionState);
       if (peerConnection.iceConnectionState === 'disconnected') {
         peerConnection.close();
         peerConnectionsRef.current.delete(userId);
       }
-    };    
-
+    };
+  
     peerConnection.ontrack = (event) => {
       const [remoteStream] = event.streams;
-    
+  
       const tryAssignStream = () => {
         const videoElement = document.getElementById(`video-${userId}`) as HTMLVideoElement | null;
         if (videoElement) {
           videoElement.srcObject = remoteStream;
         } else {
-          setTimeout(tryAssignStream, 100); 
+          setTimeout(tryAssignStream, 100);
         }
       };
-    
+  
       tryAssignStream();
     };
-    
-
+  
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
+      localStreamRef.current.getTracks().forEach((track) => {
         peerConnection.addTrack(track, localStreamRef.current!);
       });
     }
-
+  
     return peerConnection;
-  }
+  }  
 
   function stopLocalTracks() {
     if (localStreamRef.current) {

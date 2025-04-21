@@ -1,22 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './WebRTCSession.css';
 import io from 'socket.io-client';
-import twilio from 'twilio';
 
 //const socket = io('https://backend-pdis.onrender.com'); // Connect to signaling server
 const socket = io('https://round-gamefowl-spinning-wheel-5f6fd78e.koyeb.app'); // Connect to signaling server
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = twilio(accountSid, authToken);
-
-async function createToken() {
-  const token = await client.tokens.create();
-
-  console.log(token.accountSid);
-}
-
-createToken();
 
 const WebRTCSession = ({ roomId }) => {
   const localVideoRef = useRef(null);
@@ -32,9 +20,10 @@ const WebRTCSession = ({ roomId }) => {
       localVideoRef.current.srcObject = stream;
 
       // Create RTCPeerConnection
-      const myIceServers = ICE_SERVERS;
-      const configuration = { iceServers: myIceServers };
-      const peerConnection = new RTCPeerConnection(configuration);
+      const iceServers = await fetch('/api/ice-token')
+      .then(res => res.json())
+      .then(data => data.iceServers);
+      const peerConnection = new RTCPeerConnection({ iceServers });
 
       // Add local tracks to the connection
       stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
