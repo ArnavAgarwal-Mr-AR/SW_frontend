@@ -5,6 +5,7 @@ import './PodcastSession.css';
 import { usePodcastStore } from '../../store/podcastStore';
 import { useAuthStore } from '../../store/authStore';
 import { socket } from '../../utils/socket';
+const twilio = require("twilio"); 
 
 interface Participant {
   id: string;
@@ -34,6 +35,9 @@ export const PodcastSession = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const client = twilio(accountSid, authToken);
 
   const getVideoContainerClass = () => {
     const count = participants.length + 1; // +1 for local user
@@ -165,10 +169,11 @@ export const PodcastSession = () => {
     };
   }, [inviteKey]);
 
+  // Create RTCPeerConnection
+  const myIceServers = ICE_SERVERS;
+  const configuration = { iceServers: myIceServers };
   function createPeerConnection(userId: string) {
-    const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    });
+    const peerConnection = new RTCPeerConnection(configuration);
 
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
