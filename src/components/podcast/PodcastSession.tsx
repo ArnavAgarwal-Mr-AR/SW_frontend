@@ -165,40 +165,26 @@ export const PodcastSession = () => {
       cleanupWebRTC();
     };
   }, [inviteKey]);
-  
-  async function createPeerConnection(userId: string): Promise<RTCPeerConnection> {
-    let iceServers;
-  
-    try {
-      const response = await fetch('/api/ice-token');
-      const data = await response.json();
-      iceServers = data.iceServers;
-    } catch (error) {
-      console.error('Failed to fetch ICE servers:', error);
-      // fallback to basic STUN server
-      iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
-    }
-  
-    const peerConnection = new RTCPeerConnection({ iceServers });
+
+  const myIceServers = ICE_SERVERS;
+  const configuration = { iceServers: myIceServers };
+  function createPeerConnection(userId: string) {
+    const peerConnection = new RTCPeerConnection(configuration);
   
     peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit('ice-candidate', {
           candidate: event.candidate,
           roomId: inviteKey,
-          targetId: userId,
+          targetId: userId
         });
       }
     };
   
     peerConnection.onnegotiationneeded = async () => {
-      try {
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
-      } catch (err) {
-        console.error('Negotiation error:', err);
-      }
+      const offer = await peerConnection.createOffer();
+       await peerConnection.setLocalDescription(offer);
+       socket.emit('offer', { offer, roomId: inviteKey, targetId: userId });
     };
   
     peerConnection.oniceconnectionstatechange = () => {
