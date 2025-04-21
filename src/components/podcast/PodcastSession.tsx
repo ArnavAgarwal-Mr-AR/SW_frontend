@@ -5,7 +5,7 @@ import './PodcastSession.css';
 import { usePodcastStore } from '../../store/podcastStore';
 import { useAuthStore } from '../../store/authStore';
 import { socket } from '../../utils/socket';
-const twilio = require("twilio"); 
+import twilio from 'twilio'; 
 
 interface Participant {
   id: string;
