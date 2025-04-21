@@ -20,10 +20,9 @@ const WebRTCSession = ({ roomId }) => {
       localVideoRef.current.srcObject = stream;
 
       // Create RTCPeerConnection
-      const iceServers = await fetch('/api/ice-token')
-      .then(res => res.json())
-      .then(data => data.iceServers);
-      const peerConnection = new RTCPeerConnection({ iceServers });
+      myIceServers = ICE_SERVERS;
+      var configuration = { iceServers: myIceServers };
+      var pc = new RTCPeerConnection(configuration);
 
       // Add local tracks to the connection
       stream.getTracks().forEach((track) => peerConnection.addTrack(track, stream));
